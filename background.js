@@ -186,21 +186,30 @@ async function mockBacklinkCheck(url) {
     });
 }
 
-// Context menu integration (optional)
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-    if (info.menuItemId === 'analyzePage') {
-        // Open popup or trigger analysis
-        chrome.action.openPopup();
-    }
-});
+// Context menu integration (optional) - guard for safety
+if (chrome.contextMenus && chrome.contextMenus.onClicked) {
+    chrome.contextMenus.onClicked.addListener((info, tab) => {
+        if (info.menuItemId === 'analyzePage') {
+            // Open popup or trigger analysis
+            chrome.action.openPopup();
+        }
+    });
+}
 
 // Create context menu
 chrome.runtime.onInstalled.addListener(() => {
-    chrome.contextMenus.create({
-        id: 'analyzePage',
-        title: 'Analyze SEO',
-        contexts: ['page']
-    });
+    if (chrome.contextMenus && chrome.contextMenus.create) {
+        try {
+            chrome.contextMenus.create({
+                id: 'analyzePage',
+                title: 'Analyze SEO',
+                contexts: ['page']
+            });
+        } catch (e) {
+            // ignore if already exists or permission missing
+            console.warn('Context menu creation skipped:', e?.message || e);
+        }
+    }
 });
 
 // Storage management
