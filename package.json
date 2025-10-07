@@ -1,0 +1,62 @@
+{
+  "name": "seo-analyzer-pro",
+  "version": "1.0.0",
+  "description": "Comprehensive SEO analysis Chrome extension with React and Tailwind CSS",
+  "main": "popup.js",
+  "scripts": {
+    "build": "echo 'No build process needed - using CDN dependencies'",
+    "test": "echo 'Test: Load extension in Chrome and test on various websites'",
+    "validate": "echo 'Validate: Check manifest.json and file structure'",
+    "package": "echo 'Package: Create .crx file using Chrome Extensions page'"
+  },
+  "keywords": [
+    "seo",
+    "chrome-extension",
+    "react",
+    "tailwind",
+    "web-analysis",
+    "seo-tools",
+    "on-page-seo",
+    "technical-seo",
+    "content-analysis"
+  ],
+  "author": "SEO Analyzer Pro Team",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "jspdf": "^2.5.1"
+  },
+  "devDependencies": {},
+  "browser": {
+    "fs": false,
+    "path": false,
+    "os": false
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/seo-analyzer-pro.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/seo-analyzer-pro/issues"
+  },
+  "homepage": "https://github.com/your-username/seo-analyzer-pro#readme",
+  "engines": {
+    "chrome": ">=88.0.0"
+  },
+  "manifestVersion": 3,
+  "extensionInfo": {
+    "permissions": [
+      "activeTab",
+      "scripting",
+      "storage",
+      "webNavigation"
+    ],
+    "hostPermissions": [
+      "<all_urls>"
+    ],
+    "contentSecurityPolicy": {
+      "extension_pages": "script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net; object-src 'self';"
+    }
+  }
+}

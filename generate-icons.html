@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+</head>
+<body>
+    <h1>SEO Analyzer Pro Icons</h1>
+    <div id="icons"></div>
+    
+    <script>
+        function createIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#3B82F6'); // Blue
+            gradient.addColorStop(1, '#8B5CF6'); // Purple
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // SEO text
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = `bold ${size * 0.25}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('SEO', size / 2, size / 2 - size * 0.05);
+            
+            // Magnifying glass icon
+            const centerX = size / 2;
+            const centerY = size * 0.75;
+            const radius = size * 0.08;
+            
+            // Circle
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = size * 0.03;
+            ctx.beginPath();
+            ctx.arc(centerX - size * 0.02, centerY - size * 0.02, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Handle
+            ctx.beginPath();
+            ctx.moveTo(centerX + radius * 0.7, centerY + radius * 0.7);
+            ctx.lineTo(centerX + radius * 1.2, centerY + radius * 1.2);
+            ctx.stroke();
+            
+            return canvas;
+        }
+        
+        const sizes = [16, 32, 48, 128];
+        const iconsDiv = document.getElementById('icons');
+        
+        sizes.forEach(size => {
+            const canvas = createIcon(size);
+            const container = document.createElement('div');
+            container.style.margin = '10px';
+            container.innerHTML = `<h3>Icon ${size}x${size}</h3>`;
+            container.appendChild(canvas);
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.download = `icon${size}.png`;
+            link.href = canvas.toDataURL();
+            link.textContent = `Download icon${size}.png`;
+            link.style.display = 'block';
+            link.style.marginTop = '5px';
+            
+            container.appendChild(link);
+            iconsDiv.appendChild(container);
+        });
+    </script>
+</body>
+</html>
