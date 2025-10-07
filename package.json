@@ -1,7 +1,7 @@
 {
-  "name": "seo-analyzer-pro",
+  "name": "tecso-seo-analyzer",
   "version": "1.0.0",
-  "description": "Comprehensive SEO analysis Chrome extension with React and Tailwind CSS",
+  "description": "TECSO Advanced SEO Analyzer - Professional Chrome extension with GitHub-inspired UI for comprehensive website optimization analysis",
   "main": "popup.js",
   "scripts": {
     "build": "echo 'No build process needed - using CDN dependencies'",
@@ -10,17 +10,18 @@
     "package": "echo 'Package: Create .crx file using Chrome Extensions page'"
   },
   "keywords": [
+    "tecso",
     "seo",
     "chrome-extension",
     "react",
-    "tailwind",
+    "github-theme",
     "web-analysis",
     "seo-tools",
     "on-page-seo",
     "technical-seo",
     "content-analysis"
   ],
-  "author": "SEO Analyzer Pro Team",
+  "author": "TECSO - sobhanaz",
   "license": "MIT",
   "dependencies": {
     "react": "^18.2.0",

@@ -1,8 +1,8 @@
-# SEO Analyzer Pro - Chrome Extension
+# TECSO Advanced SEO Analyzer - Chrome Extension
 
-A comprehensive SEO analysis tool that provides detailed insights into your website's search engine optimization performance.
+A professional-grade SEO analysis tool with GitHub-inspired dark theme interface, providing comprehensive insights into your website's search engine optimization performance.
 
-## Features
+## 🚀 Features
 
 ### 🔍 **Comprehensive SEO Analysis**
 - **On-Page SEO**: Title tags, meta descriptions, headers, alt text, keyword density, internal/external links
@@ -10,23 +10,23 @@ A comprehensive SEO analysis tool that provides detailed insights into your webs
 - **Content Analysis**: Word count, readability, text-to-HTML ratio, duplicate content detection
 - **Off-Page SEO**: Social media tags (Open Graph, Twitter Cards), structured data, backlink analysis
 
-### 🎨 **Modern User Interface**
-- React-based popup interface with Tailwind CSS
+### 🎨 **GitHub-Inspired Dark Theme**
+- Professional dark interface with GitHub color scheme
 - Responsive design with intuitive navigation
 - Color-coded results (Green = Good, Yellow = Warning, Red = Error)
 - Collapsible sections for organized viewing
 - Real-time analysis with loading indicators
 
 ### 📊 **Advanced Features**
-- Overall SEO score calculation
+- Overall SEO score calculation (0-100)
 - PDF report generation with jsPDF
 - Customizable analysis settings
 - Performance tracking and metrics
 - Context menu integration
 - Badge indicators for quick status
 
-### ⚙️ **Smart Analysis**
-- Real-time DOM analysis
+### ⚙️ **TECSO Intelligence**
+- Real-time DOM analysis engine
 - Performance API integration for load speed
 - Structured data validation
 - Social media optimization checks

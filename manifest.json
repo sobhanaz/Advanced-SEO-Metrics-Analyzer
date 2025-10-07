@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "SEO Analyzer Pro",
+  "name": "TECSO - Advanced SEO Analyzer",
   "version": "1.0.0",
-  "description": "Comprehensive SEO analysis tool with detailed recommendations and insights",
+  "description": "Professional SEO analysis tool by TECSO - Comprehensive website optimization insights with GitHub-inspired interface",
   "permissions": [
     "activeTab",
     "scripting",
@@ -14,7 +14,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "SEO Analyzer Pro"
+    "default_title": "TECSO SEO Analyzer"
   },
   "background": {
     "service_worker": "background.js"
@@ -26,19 +26,10 @@
       "run_at": "document_idle"
     }
   ],
-  "content_security_policy": {
-    "extension_pages": "script-src 'self' https://cdn.jsdelivr.net; object-src 'self';"
-  },
   "web_accessible_resources": [
     {
       "resources": ["*"],
       "matches": ["<all_urls>"]
     }
-  ],
-  "icons": {
-    "16": "icons/icon16.png",
-    "32": "icons/icon32.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  }
+  ]
 }

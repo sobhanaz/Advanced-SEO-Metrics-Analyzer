@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TECSO Icon Generator</title>
+</head>
+<body>
+    <h1>Generating TECSO Icons...</h1>
+    <div id="icons"></div>
+    
+    <script>
+        function createTECSOIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // TECSO gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#2f81f7'); // TECSO Blue
+            gradient.addColorStop(1, '#7c3aed'); // TECSO Purple
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // TECSO text
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = `bold ${size * 0.18}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('TECSO', size / 2, size / 2 - size * 0.05);
+            
+            // SEO magnifying glass icon
+            const centerX = size / 2;
+            const centerY = size * 0.75;
+            const radius = size * 0.08;
+            
+            // Circle
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = Math.max(1, size * 0.03);
+            ctx.beginPath();
+            ctx.arc(centerX - size * 0.02, centerY - size * 0.02, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Handle
+            ctx.beginPath();
+            ctx.moveTo(centerX + radius * 0.7, centerY + radius * 0.7);
+            ctx.lineTo(centerX + radius * 1.2, centerY + radius * 1.2);
+            ctx.stroke();
+            
+            return canvas;
+        }
+        
+        // Create all icon sizes
+        const sizes = [16, 32, 48, 128];
+        const iconsDiv = document.getElementById('icons');
+        
+        sizes.forEach(size => {
+            const canvas = createTECSOIcon(size);
+            const container = document.createElement('div');
+            container.style.margin = '10px';
+            container.innerHTML = `<h3>TECSO Icon ${size}x${size}</h3>`;
+            container.appendChild(canvas);
+            
+            // Auto-download
+            const link = document.createElement('a');
+            link.download = `icon${size}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            
+            container.appendChild(document.createElement('p')).textContent = `✓ Downloaded icon${size}.png`;
+            iconsDiv.appendChild(container);
+        });
+        
+        // Show completion message
+        setTimeout(() => {
+            const msg = document.createElement('div');
+            msg.innerHTML = '<h2 style="color: green;">✅ All TECSO icons generated and downloaded!</h2><p>Check your Downloads folder for the icon files, then copy them to the icons/ folder.</p>';
+            iconsDiv.appendChild(msg);
+        }, 1000);
+    </script>
+</body>
+</html>
