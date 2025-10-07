@@ -1,47 +1,95 @@
 # Tecso SEO Analyzer
 
-Actionable website SEO insights by Tecso — a digital marketing agency. Learn more at https://tecso.team
+Actionable SEO insights for any page: on‑page, technical, content, UX, local, performance, analytics, and advanced checks — by Tecso. Learn more at https://tecso.team
 
 ## What it does
-- On-Page SEO: title/meta, headings hierarchy, link and image checks, keyword distribution
-- Technical SEO: HTTPS, viewport, canonical, robots meta, favicon, minified assets, basic performance signals
-- Content Quality: length, readability, text-to-HTML ratio, duplicate checks, images-in-content
-- Off-Page SEO: Open Graph, Twitter Cards, social links, microdata, external link rel usage
-- Background: robots.txt and sitemap discovery; mock backlink metrics for demo purposes
+- On‑Page SEO: titles/meta, headings hierarchy, links, images (alts/size), internal/external ratios
+- Technical SEO: HTTPS, viewport, canonical, robots meta, hreflang hints, favicon, minified assets
+- Content Quality: content length, readability indicators, text‑to‑HTML, duplication hints, images in copy
+- Off‑Page SEO: Open Graph/Twitter Cards, social links, rel attributes, basic microdata presence
+- UX & Core Web Vitals: modern collection via PerformanceObserver (LCP, CLS) and INP approximation
+- Local SEO: business hints in content and JSON‑LD types
+- Performance & Speed: asset heuristics, image optimization, PSI optional lab metrics
+- Analytics & Monitoring: analytics tags presence, tracking hints
+- Advanced SEO: structured data parsing (JSON‑LD types), canonical/domain heuristics, misc extras
+- Background: robots.txt and sitemap discovery; backlinks via mock or custom endpoint; badge score update
 
 ## Highlights
-- Manifest V3 Chrome extension, CSP-safe (no inline scripts)
-- Clean dark theme with Tecso accent color
-- Settings panel to enable/disable categories
-- One-click JSON export for reports
+- Manifest V3 Chrome extension, CSP‑safe (no inline/remote scripts)
+- Light/Dark/System theme modes, responsive toolbar, polished UI chips and accordions
+- Settings panel to choose categories, backlink provider/endpoint, PSI toggle + API key, auto‑analyze
+- Exports: JSON, CSV, and print‑friendly HTML; copy buttons for a category or all errors
 
 ## Install (developer mode)
 1. Open `chrome://extensions`
 2. Enable Developer mode
-3. Click “Load unpacked” and select this folder
+3. Click “Load unpacked” and select this folder (repo root)
 4. Pin “Tecso SEO Analyzer” and click the icon on any site
 
 ## Usage
-1. Open any normal webpage (not chrome://, PDF, or Web Store)
+1. Open a typical webpage (not `chrome://`, the Chrome Web Store, or PDFs)
 2. Click the extension icon → Analyze
-3. Expand category accordions for details; use Settings to toggle checks
-4. Export a JSON report with one click
+3. Use filter chips (All / Errors / Warnings / Good) and expand cards for details
+4. Export JSON/CSV/HTML or copy errors; open Settings to adjust checks
 
-## Tecso Ads / Services
-Need a deeper audit, content strategy, or technical fixes? Tecso can help.
-- Free consultation: https://tecso.team
-- Custom SEO audits, content plans, technical optimization, and ongoing growth
+## Settings
+- Categories: On‑Page, Technical, Content, Off‑Page, UX, Local, Performance, Analytics, Advanced
+- Auto analyze on open: run a scan when the popup opens
+- Theme mode: System / Dark / Light
+- Backlinks:
+	- Provider: Mock or Custom endpoint (set your API URL)
+- PageSpeed Insights (PSI):
+	- Enable lab metrics and supply a PSI API key
+
+## Exports
+- JSON: full structured output (scores + details)
+- CSV: rows by Category/Type/Message for spreadsheets
+- HTML: clean, print‑friendly report for sharing
+
+## Packaging a ZIP for the Chrome Web Store
+A PowerShell script builds a clean ZIP in `Package/`.
+
+Windows PowerShell (run from repo root or the `Package` folder):
+
+```powershell
+cd Package
+./package.ps1
+```
+
+Outputs:
+- `Package/dist/` — a clean copy of the extension files
+- `Package/tecso-seo-analyzer.zip` — upload this to the Chrome Web Store
+
+To test the packaged folder locally:
+1. `chrome://extensions` → Developer mode → Load unpacked
+2. Select `Package/dist/`
+
+## Permissions
+- `activeTab`, `scripting`, `storage`, `webNavigation`, `contextMenus`
+- Host permissions: `<all_urls>` — required to analyze the current page and discover robots.txt/sitemap
+
+## Privacy
+- No tracking or analytics are sent by default.
+- If you configure a custom backlinks endpoint, requests will go to that API for backlink metrics.
+
+## Troubleshooting
+- “Cannot analyze this page” → Some pages (Chrome Web Store, `chrome://` URLs, PDFs) do not allow content scripts. Try another site.
+- Black/empty popup → Reload the page and click Analyze again; ensure the site allows scripts.
+- Clipboard not working → Copy actions require a user gesture; click the copy button again after a user interaction.
+- No PSI data → Ensure PSI is enabled in Settings and a valid API key is provided.
 
 ## File structure
 ```
 seo-checker/
-├── manifest.json          # Extension configuration
-├── popup.html             # Popup layout (loads popup_app.js)
-├── popup_app.js           # Popup logic (UI, messaging, settings, export)
-├── content.js             # In-page analysis logic
-├── background.js          # Background checks (robots/sitemap/backlinks)
-├── icons/                 # Icons
-└── README.md              # This file
+├── manifest.json          # Extension configuration (MV3)
+├── popup.html             # Popup layout and styles
+├── popup_app.js           # Popup logic (UI, settings, exports, messaging)
+├── content.js             # In‑page analysis
+├── background.js          # Robots/sitemap/backlinks, PSI, badge updates
+├── icons/                 # Icons (16/32/48/128)
+└── Package/               # Packaging script and outputs
+		├── package.ps1        # Builds dist/ and tecso-seo-analyzer.zip
+		└── README.md          # Packaging instructions
 ```
 
 ## License
