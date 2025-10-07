@@ -10,7 +10,12 @@ chrome.runtime.onInstalled.addListener(() => {
                     checkOnPage: true,
                     checkTechnical: true,
                     checkContent: true,
-                    checkOffPage: true
+                    checkOffPage: true,
+                    checkUX: true,
+                    checkLocal: false,
+                    checkPerformance: true,
+                    checkAnalytics: true,
+                    checkAdvanced: true
                 }
             });
         }

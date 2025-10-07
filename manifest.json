@@ -1,8 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "TECSO - Advanced SEO Analyzer",
+  "name": "Tecso SEO Analyzer",
+  "short_name": "Tecso SEO",
   "version": "1.0.0",
-  "description": "Professional SEO analysis tool by TECSO - Comprehensive website optimization insights with GitHub-inspired interface",
+  "description": "Tecso SEO Analyzer — actionable on-page, technical, content, and off-page insights. Built by Tecso (https://tecso.team).",
+  "homepage_url": "https://tecso.team",
+  "author": "Tecso",
   "permissions": [
     "activeTab",
     "scripting",

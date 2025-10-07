@@ -21,7 +21,12 @@
             onPage: { good: [], warnings: [], errors: [] },
             technical: { good: [], warnings: [], errors: [] },
             content: { good: [], warnings: [], errors: [] },
-            offPage: { good: [], warnings: [], errors: [] }
+            offPage: { good: [], warnings: [], errors: [] },
+            userExperience: { good: [], warnings: [], errors: [] },
+            local: { good: [], warnings: [], errors: [] },
+            performance: { good: [], warnings: [], errors: [] },
+            analytics: { good: [], warnings: [], errors: [] },
+            advanced: { good: [], warnings: [], errors: [] }
         };
 
         // On-Page SEO Analysis
@@ -42,6 +47,31 @@
         // Off-Page SEO Analysis
         if (settings.checkOffPage) {
             analyzeOffPageSEO(results.offPage);
+        }
+
+        // User Experience (UX) and Core Web Vitals
+        if (settings.checkUX) {
+            analyzeUX(results.userExperience);
+        }
+
+        // Local SEO
+        if (settings.checkLocal) {
+            analyzeLocalSEO(results.local);
+        }
+
+        // Performance & Speed
+        if (settings.checkPerformance) {
+            analyzePerformance(results.performance);
+        }
+
+        // Analytics & Monitoring
+        if (settings.checkAnalytics) {
+            analyzeAnalytics(results.analytics);
+        }
+
+        // Advanced SEO
+        if (settings.checkAdvanced) {
+            analyzeAdvanced(results.advanced);
         }
 
         return results;
@@ -153,7 +183,7 @@
             }
         }
 
-        // Internal and external links
+    // Internal and external links
         const links = document.querySelectorAll('a[href]');
         let internalLinks = 0;
         let externalLinks = 0;
@@ -182,6 +212,32 @@
             results.good.push({
                 message: `${externalLinks} external links found`
             });
+        }
+
+        // URL SEO-friendly checks
+        try {
+            const url = window.location.href;
+            const hasUpper = /[A-Z]/.test(url);
+            const hasUnderscore = /_/.test(new URL(url).pathname);
+            const hasManyParams = (new URL(url).searchParams?.toString() || '').split('&').filter(Boolean).length > 2;
+            if (url.length > 115) {
+                results.warnings.push({ message: `Long URL (${url.length} chars)`, tip: 'Keep URLs concise (<115 characters) and human-readable' });
+            }
+            if (hasUpper) {
+                results.warnings.push({ message: 'URL contains uppercase letters', tip: 'Use lowercase for consistency and to avoid duplicates' });
+            }
+            if (hasUnderscore) {
+                results.warnings.push({ message: 'URL contains underscores', tip: 'Prefer hyphens (-) in URLs' });
+            }
+            if (hasManyParams) {
+                results.warnings.push({ message: 'URL has many query parameters', tip: 'Avoid long query strings on indexable pages' });
+            }
+        } catch (_) {}
+
+        // Multimedia presence
+        const videos = document.querySelectorAll('video, iframe[src*="youtube.com"], iframe[src*="vimeo.com"]');
+        if (videos.length > 0) {
+            results.good.push({ message: 'Multimedia detected (video/iframe)' });
         }
 
         // Keyword density analysis (basic)
@@ -255,6 +311,13 @@
             });
         }
 
+        // Pagination rel next/prev
+        const relNext = document.querySelector('link[rel="next"]');
+        const relPrev = document.querySelector('link[rel="prev"]');
+        if (relNext || relPrev) {
+            results.good.push({ message: 'Pagination rel next/prev present' });
+        }
+
         // Robots meta
         const robots = document.querySelector('meta[name="robots"]');
         if (robots) {
@@ -283,6 +346,12 @@
             });
         }
 
+        // hreflang alternates
+        const hrefLangs = document.querySelectorAll('link[rel="alternate"][hreflang]');
+        if (hrefLangs.length > 0) {
+            results.good.push({ message: `${hrefLangs.length} hreflang alternates found` });
+        }
+
         // Favicon
         const favicon = document.querySelector('link[rel="icon"], link[rel="shortcut icon"]');
         if (favicon) {
@@ -296,29 +365,24 @@
             });
         }
 
-        // Page load speed (simplified check using Performance API)
-        if (window.performance && window.performance.timing) {
-            const loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
-            if (loadTime < 2000) {
-                results.good.push({
-                    message: `Excellent page load time (${Math.round(loadTime/1000)}s)`
-                });
-            } else if (loadTime < 3000) {
-                results.good.push({
-                    message: `Good page load time (${Math.round(loadTime/1000)}s)`
-                });
-            } else if (loadTime < 5000) {
-                results.warnings.push({
-                    message: `Moderate page load time (${Math.round(loadTime/1000)}s)`,
-                    tip: 'Optimize images and reduce HTTP requests to improve load time'
-                });
-            } else {
-                results.errors.push({
-                    message: `Slow page load time (${Math.round(loadTime/1000)}s)`,
-                    tip: 'Significant performance optimization needed'
-                });
+        // Basic load time using Performance Navigation Timing
+        try {
+            const nav = performance.getEntriesByType && performance.getEntriesByType('navigation');
+            if (nav && nav.length) {
+                const loadTime = nav[0].loadEventEnd; // ms from navigation start
+                if (loadTime > 0) {
+                    if (loadTime < 2000) {
+                        results.good.push({ message: `Excellent page load time (${Math.round(loadTime/1000)}s)` });
+                    } else if (loadTime < 3000) {
+                        results.good.push({ message: `Good page load time (${Math.round(loadTime/1000)}s)` });
+                    } else if (loadTime < 5000) {
+                        results.warnings.push({ message: `Moderate page load time (${Math.round(loadTime/1000)}s)`, tip: 'Optimize images and reduce HTTP requests to improve load time' });
+                    } else {
+                        results.errors.push({ message: `Slow page load time (${Math.round(loadTime/1000)}s)`, tip: 'Significant performance optimization needed' });
+                    }
+                }
             }
-        }
+        } catch(_) {}
 
         // Check for minified CSS/JS
         const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
@@ -355,6 +419,12 @@
                 message: 'Some JavaScript files are not minified',
                 tip: 'Minify all JavaScript files to improve load times'
             });
+        }
+
+        // AMP presence
+        const amp = document.querySelector('link[rel="amphtml"]');
+        if (amp) {
+            results.good.push({ message: 'AMP version linked' });
         }
     }
 
@@ -449,6 +519,25 @@
                 tip: 'Consider adding relevant images to improve user engagement'
             });
         }
+
+        // Content freshness: check meta or JSON-LD dates
+        let publishedDate = null;
+        const metaPub = document.querySelector('meta[property="article:published_time"], meta[name="date"]');
+        if (metaPub && metaPub.content) publishedDate = new Date(metaPub.content);
+        try {
+            const ldTypes = parseJsonLdTypes();
+            if (ldTypes.meta.datePublished) {
+                publishedDate = new Date(ldTypes.meta.datePublished);
+            }
+        } catch(_) {}
+        if (publishedDate && !isNaN(publishedDate.getTime())) {
+            const days = Math.floor((Date.now() - publishedDate.getTime()) / (1000*60*60*24));
+            if (days < 365) {
+                results.good.push({ message: `Content recently published/updated (${days} days ago)` });
+            } else {
+                results.warnings.push({ message: 'Content may be outdated', tip: 'Refresh content periodically to maintain rankings' });
+            }
+        }
     }
 
     function analyzeOffPageSEO(results) {
@@ -505,34 +594,20 @@
         // Structured data (JSON-LD)
         const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]');
         if (jsonLdScripts.length > 0) {
-            results.good.push({
-                message: `Structured data found (${jsonLdScripts.length} JSON-LD blocks)`
-            });
-            
+            results.good.push({ message: `Structured data found (${jsonLdScripts.length} JSON-LD blocks)` });
             // Try to validate JSON-LD
             let validJsonLd = 0;
             jsonLdScripts.forEach(script => {
                 try {
                     const data = JSON.parse(script.textContent);
-                    if (data['@context'] || data['@type']) {
-                        validJsonLd++;
-                    }
-                } catch (e) {
-                    // Invalid JSON-LD
-                }
+                    if (data['@context'] || data['@type']) { validJsonLd++; }
+                } catch (_) {}
             });
-
             if (validJsonLd !== jsonLdScripts.length) {
-                results.warnings.push({
-                    message: 'Some JSON-LD blocks may be invalid',
-                    tip: 'Validate your structured data using Google\'s Structured Data Testing Tool'
-                });
+                results.warnings.push({ message: 'Some JSON-LD blocks may be invalid', tip: 'Validate your structured data using Google\'s Rich Results Test' });
             }
         } else {
-            results.warnings.push({
-                message: 'No structured data found',
-                tip: 'Add JSON-LD structured data for rich snippets'
-            });
+            results.warnings.push({ message: 'No structured data found', tip: 'Add JSON-LD structured data for rich snippets' });
         }
 
         // Check for social media links
@@ -583,6 +658,207 @@
                 });
             }
         }
+    }
+
+    // New categories implementations
+    function analyzeUX(results) {
+        // Core Web Vitals (LCP & CLS)
+        try {
+            const lcpEntries = performance.getEntriesByType ? performance.getEntriesByType('largest-contentful-paint') : [];
+            if (lcpEntries && lcpEntries.length) {
+                const last = lcpEntries[lcpEntries.length - 1];
+                const lcp = (last.renderTime || last.loadTime || last.startTime) || 0; // ms
+                if (lcp <= 2500) {
+                    results.good.push({ message: `LCP good (${(lcp/1000).toFixed(2)}s)` });
+                } else if (lcp <= 4000) {
+                    results.warnings.push({ message: `LCP needs improvement (${(lcp/1000).toFixed(2)}s)`, tip: 'Optimize images and critical rendering path' });
+                } else {
+                    results.errors.push({ message: `LCP poor (${(lcp/1000).toFixed(2)}s)`, tip: 'Compress images, reduce render-blocking resources' });
+                }
+            } else {
+                results.warnings.push({ message: 'LCP not available', tip: 'Run PageSpeed Insights for field data' });
+            }
+        } catch(_) {}
+
+        try {
+            const clsEntries = performance.getEntriesByType ? performance.getEntriesByType('layout-shift') : [];
+            let cls = 0;
+            clsEntries.forEach(e => { if (!e.hadRecentInput) cls += e.value || 0; });
+            if (cls > 0) {
+                if (cls <= 0.1) {
+                    results.good.push({ message: `CLS good (${cls.toFixed(3)})` });
+                } else if (cls <= 0.25) {
+                    results.warnings.push({ message: `CLS needs improvement (${cls.toFixed(3)})`, tip: 'Set width/height on images; avoid layout shifts' });
+                } else {
+                    results.errors.push({ message: `CLS poor (${cls.toFixed(3)})`, tip: 'Reserve space for media; avoid inserting above content' });
+                }
+            }
+        } catch(_) {}
+
+        // Navigation and breadcrumbs
+        const nav = document.querySelector('nav');
+        if (nav) results.good.push({ message: 'Navigation landmark present' });
+        const breadcrumbsSchema = document.querySelector('[itemtype*="BreadcrumbList"], script[type="application/ld+json"]');
+        const breadcrumbUI = document.querySelector('nav[aria-label*="breadcrumb" i], .breadcrumb, ol.breadcrumb');
+        if (breadcrumbsSchema || breadcrumbUI) {
+            results.good.push({ message: 'Breadcrumbs detected' });
+        }
+
+        // Accessibility basics
+        const imgsNoAlt = Array.from(document.querySelectorAll('img')).filter(img => !img.alt || img.alt.trim() === '').length;
+        if (imgsNoAlt > 0) {
+            results.warnings.push({ message: `${imgsNoAlt} images missing alt`, tip: 'Add descriptive alt attributes' });
+        }
+        const labels = document.querySelectorAll('label[for]');
+        const inputs = document.querySelectorAll('input:not([type=hidden]):not([aria-hidden])');
+        if (inputs.length > 0 && labels.length < inputs.length * 0.5) {
+            results.warnings.push({ message: 'Many inputs lack associated labels', tip: 'Link labels to inputs via for/id or use aria-label' });
+        }
+    }
+
+    function analyzeLocalSEO(results) {
+        // LocalBusiness schema
+        try {
+            const { types, meta } = parseJsonLdTypes();
+            if (types.some(t => /LocalBusiness|Organization|Restaurant|Store|Medical/.test(t))) {
+                results.good.push({ message: 'LocalBusiness/Organization schema present' });
+            } else {
+                results.warnings.push({ message: 'No LocalBusiness schema', tip: 'Add LocalBusiness schema with address and phone' });
+            }
+            if (meta.address) {
+                results.good.push({ message: 'Business address structured data found' });
+            }
+            if (meta.telephone) {
+                results.good.push({ message: 'Business phone in structured data' });
+            }
+            if (meta.aggregateRating) {
+                results.good.push({ message: 'AggregateRating schema found (reviews)' });
+            }
+        } catch(_) {}
+
+        // NAP presence heuristics
+        const phoneLinks = document.querySelectorAll('a[href^="tel:"]');
+        if (phoneLinks.length > 0) results.good.push({ message: 'Clickable phone number (tel:) found' });
+        const mapIframes = document.querySelectorAll('iframe[src*="google.com/maps"], iframe[src*="maps.apple.com"]');
+        if (mapIframes.length > 0) results.good.push({ message: 'Map embed detected' });
+    }
+
+    function analyzePerformance(results) {
+        try {
+            const nav = performance.getEntriesByType && performance.getEntriesByType('navigation');
+            if (nav && nav.length) {
+                const n = nav[0];
+                const ttfb = n.responseStart; // ms since start
+                if (ttfb > 0) {
+                    if (ttfb < 200) results.good.push({ message: `TTFB good (${Math.round(ttfb)} ms)` });
+                    else if (ttfb < 500) results.warnings.push({ message: `TTFB moderate (${Math.round(ttfb)} ms)`, tip: 'Consider CDN and server optimizations' });
+                    else results.errors.push({ message: `TTFB high (${Math.round(ttfb)} ms)`, tip: 'Use caching, optimize server, leverage CDN' });
+                }
+            }
+        } catch(_) {}
+
+        // Image optimization & lazy loading
+        const imgs = Array.from(document.querySelectorAll('img[src]'));
+        if (imgs.length > 0) {
+            const webp = imgs.filter(i => /\.webp($|\?)/i.test(i.currentSrc || i.src)).length;
+            const avif = imgs.filter(i => /\.avif($|\?)/i.test(i.currentSrc || i.src)).length;
+            const lazy = imgs.filter(i => (i.loading || '').toLowerCase() === 'lazy').length;
+            const dimMissing = imgs.filter(i => !(i.getAttribute('width') && i.getAttribute('height'))).length;
+            if (webp + avif > 0) results.good.push({ message: `Modern image formats used (${webp + avif}/${imgs.length})` });
+            else results.warnings.push({ message: 'No modern image formats detected', tip: 'Use WebP or AVIF for better compression' });
+            if (lazy / imgs.length >= 0.5) results.good.push({ message: `Lazy loading on ${Math.round((lazy/imgs.length)*100)}% images` });
+            else results.warnings.push({ message: 'Low lazy-loading usage on images', tip: 'Add loading="lazy" to below-the-fold images' });
+            if (dimMissing > 0) results.warnings.push({ message: `${dimMissing} images missing width/height`, tip: 'Set dimensions to reduce CLS' });
+        }
+
+        // First Input Delay (if any)
+        try {
+            const fidEntries = performance.getEntriesByType ? performance.getEntriesByType('first-input') : [];
+            if (fidEntries && fidEntries.length) {
+                const e = fidEntries[0];
+                const fid = e.processingStart - e.startTime;
+                if (fid < 100) results.good.push({ message: `FID good (${Math.round(fid)} ms)` });
+                else if (fid < 200) results.warnings.push({ message: `FID moderate (${Math.round(fid)} ms)` });
+                else results.errors.push({ message: `FID poor (${Math.round(fid)} ms)`, tip: 'Reduce JS main-thread work' });
+            } else {
+                results.warnings.push({ message: 'FID/INP not measured', tip: 'Requires user interaction or lab testing' });
+            }
+        } catch(_) {}
+    }
+
+    function analyzeAnalytics(results) {
+        const scripts = Array.from(document.scripts);
+        const srcs = scripts.map(s => s.src || '').filter(Boolean);
+        const hasGA4 = srcs.some(s => s.includes('www.googletagmanager.com/gtag/js'));
+        const hasGTM = srcs.some(s => s.includes('www.googletagmanager.com'));
+        const hasPlausible = srcs.some(s => s.includes('plausible.io/js'));
+        const hasMatomo = srcs.some(s => s.includes('matomo') || s.includes('piwik'));
+        const hasClarity = srcs.some(s => s.includes('clarity.ms'));
+        const hasAnalyticsJs = srcs.some(s => s.includes('analytics.js'));
+        if (hasGA4 || hasGTM || hasPlausible || hasMatomo || hasClarity || hasAnalyticsJs) {
+            const tools = [hasGA4 && 'GA4', hasGTM && 'GTM', hasPlausible && 'Plausible', hasMatomo && 'Matomo', hasClarity && 'Clarity', hasAnalyticsJs && 'UA'].filter(Boolean).join(', ');
+            results.good.push({ message: `Analytics detected (${tools})` });
+        } else {
+            results.warnings.push({ message: 'No analytics scripts detected', tip: 'Install GA4, Plausible, or Matomo to track performance' });
+        }
+    }
+
+    function analyzeAdvanced(results) {
+        // Entity & schema coverage
+        try {
+            const { types } = parseJsonLdTypes();
+            if (types.length > 0) {
+                results.good.push({ message: `Schema types: ${Array.from(new Set(types)).slice(0,6).join(', ')}` });
+            }
+            if (types.some(t => /FAQPage/i.test(t))) {
+                results.good.push({ message: 'FAQ schema found' });
+            }
+            if (types.some(t => /HowTo/i.test(t))) {
+                results.good.push({ message: 'HowTo schema found' });
+            }
+            if (types.some(t => /VideoObject/i.test(t))) {
+                results.good.push({ message: 'VideoObject schema found' });
+            }
+            if (!types.length) {
+                results.warnings.push({ message: 'No advanced schema types detected', tip: 'Consider adding FAQ, HowTo, or VideoObject where relevant' });
+            }
+        } catch(_) {}
+
+        // E-A-T signals
+        const authorMeta = document.querySelector('meta[name="author"], meta[property="article:author"]');
+        const authorByline = document.querySelector('[rel="author"], .author, .byline');
+        if (authorMeta || authorByline) {
+            results.good.push({ message: 'Author attribution present' });
+        } else {
+            results.warnings.push({ message: 'No clear author attribution', tip: 'Add author bio and expertise signals (E-E-A-T)' });
+        }
+    }
+
+    // Helpers
+    function parseJsonLdTypes() {
+        const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
+        const types = [];
+        const meta = { datePublished: null, address: null, telephone: null, aggregateRating: null };
+        scripts.forEach(s => {
+            try {
+                const json = JSON.parse(s.textContent);
+                const collect = (obj) => {
+                    if (!obj || typeof obj !== 'object') return;
+                    const t = obj['@type'];
+                    if (t) {
+                        if (Array.isArray(t)) t.forEach(x => types.push(String(x)));
+                        else types.push(String(t));
+                    }
+                    if (obj.datePublished && !meta.datePublished) meta.datePublished = obj.datePublished;
+                    if (obj.address && !meta.address) meta.address = obj.address;
+                    if (obj.telephone && !meta.telephone) meta.telephone = obj.telephone;
+                    if (obj.aggregateRating && !meta.aggregateRating) meta.aggregateRating = obj.aggregateRating;
+                    Object.values(obj).forEach(collect);
+                };
+                if (Array.isArray(json)) json.forEach(collect); else collect(json);
+            } catch(_) {}
+        });
+        return { types, meta };
     }
 
     // Initialize content script
