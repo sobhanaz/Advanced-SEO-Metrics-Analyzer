@@ -281,12 +281,37 @@ document.addEventListener('DOMContentLoaded', () => {
   if (appContainer) {
     appContainer.innerHTML = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #111827; color: white; min-height: 400px; padding: 16px; margin: 0;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #374151;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #374151;">
           <div style="display: flex; align-items: center;">
             <div id="logo-icon" style="font-size: 20px; margin-right: 8px;"></div>
             <span style="font-weight: 600; font-size: 16px; color: #2f81f7;">TECSO SEO Checker</span>
           </div>
-          <button id="analyze-button" style="background: #2f81f7; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Analyze Page</button>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button id="analyze-button" style="background: #2f81f7; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">Analyze</button>
+            <button id="export-button" disabled style="background: #374151; color: #cbd5e1; border: 1px solid #4b5563; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">Export</button>
+            <button id="settings-button" title="Settings" style="background: #111827; color: #cbd5e1; border: 1px solid #4b5563; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">Settings</button>
+          </div>
+        </div>
+        <div id="settings-panel" style="display:none; background:#0f172a; border:1px solid #374151; border-radius:8px; padding:12px; margin-bottom:12px;">
+          <div style="font-weight:600; margin-bottom:8px;">Analysis Settings</div>
+          <div style="display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:8px; margin-bottom:8px;">
+            <label style="display:flex; align-items:center; gap:8px;">
+              <input id="chk-onpage" type="checkbox" /> On-Page SEO
+            </label>
+            <label style="display:flex; align-items:center; gap:8px;">
+              <input id="chk-technical" type="checkbox" /> Technical SEO
+            </label>
+            <label style="display:flex; align-items:center; gap:8px;">
+              <input id="chk-content" type="checkbox" /> Content Quality
+            </label>
+            <label style="display:flex; align-items:center; gap:8px;">
+              <input id="chk-offpage" type="checkbox" /> Off-Page SEO
+            </label>
+          </div>
+          <div style="display:flex; gap:8px; justify-content:flex-end;">
+            <button id="settings-cancel" style="background:#1f2937; color:#e5e7eb; border:1px solid #4b5563; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">Cancel</button>
+            <button id="settings-save" style="background:#22c55e; color:#0b1220; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;">Save</button>
+          </div>
         </div>
         <div class="app-content" style="text-align: center; padding: 40px 0; color: #9ca3af;">
           <div id="placeholder-icon" style="font-size: 48px; margin-bottom: 16px;"></div>
@@ -300,5 +325,82 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logoIconEl) logoIconEl.textContent = '📊';
     const placeholderIconEl = document.getElementById('placeholder-icon');
     if (placeholderIconEl) placeholderIconEl.textContent = '🔍';
+
+    // Settings wiring
+    const settingsBtn = document.getElementById('settings-button');
+    const settingsPanel = document.getElementById('settings-panel');
+    const chkOn = document.getElementById('chk-onpage');
+    const chkTech = document.getElementById('chk-technical');
+    const chkContent = document.getElementById('chk-content');
+    const chkOff = document.getElementById('chk-offpage');
+    const saveBtn = document.getElementById('settings-save');
+    const cancelBtn = document.getElementById('settings-cancel');
+    const exportBtn = document.getElementById('export-button');
+
+    const toggleSettings = () => {
+      if (!settingsPanel) return;
+      const showing = settingsPanel.style.display !== 'none';
+      settingsPanel.style.display = showing ? 'none' : 'block';
+    };
+
+    const populateSettings = async () => {
+      const s = await getSettings();
+      if (chkOn) chkOn.checked = !!s.checkOnPage;
+      if (chkTech) chkTech.checked = !!s.checkTechnical;
+      if (chkContent) chkContent.checked = !!s.checkContent;
+      if (chkOff) chkOff.checked = !!s.checkOffPage;
+    };
+
+    const saveSettings = async () => {
+      const newSettings = {
+        checkOnPage: !!(chkOn && chkOn.checked),
+        checkTechnical: !!(chkTech && chkTech.checked),
+        checkContent: !!(chkContent && chkContent.checked),
+        checkOffPage: !!(chkOff && chkOff.checked),
+      };
+      await new Promise((resolve) => chrome.storage.local.set({ seoSettings: newSettings }, resolve));
+      if (settingsPanel) settingsPanel.style.display = 'none';
+    };
+
+    const exportResults = () => {
+      if (!analysisResult) return;
+      const data = {
+        generatedAt: new Date().toISOString(),
+        url: undefined,
+        overallScore: analysisResult.overallScore,
+        categories: analysisResult.categories,
+      };
+      // Try to get current tab URL
+      chrome.tabs && chrome.tabs.query && chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        try { data.url = tabs && tabs[0] && tabs[0].url ? tabs[0].url : undefined; } catch(_) {}
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const host = (() => { try { return data.url ? new URL(data.url).hostname : 'site'; } catch(_) { return 'site'; } })();
+        a.href = url;
+        a.download = `seo-report-${host}.json`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 0);
+      });
+    };
+
+    if (settingsBtn) settingsBtn.addEventListener('click', () => {
+      populateSettings().then(toggleSettings);
+    });
+    if (saveBtn) saveBtn.addEventListener('click', saveSettings);
+    if (cancelBtn) cancelBtn.addEventListener('click', () => settingsPanel && (settingsPanel.style.display = 'none'));
+    if (exportBtn) exportBtn.addEventListener('click', exportResults);
+
+    // Enable export after we have results
+    const originalRenderResults = renderResults;
+    renderResults = function(analysis) {
+      const btn = document.getElementById('export-button');
+      if (btn) btn.disabled = false;
+      return originalRenderResults(analysis);
+    };
   }
 });
