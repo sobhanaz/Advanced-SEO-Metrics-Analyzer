@@ -692,21 +692,160 @@ document.addEventListener('DOMContentLoaded', () => {
         blob = new Blob([csv], { type: 'text/csv' });
         filename = `seo-report-${host}.csv`;
       } else {
-        const style = '<style>@media print { @page{ margin:16mm; } } body{font-family:Segoe UI,Arial,sans-serif;background:#ffffff;color:#24292f;padding:16px;}h1{color:#0b61f7;}table{width:100%;border-collapse:collapse;margin-top:12px;}th,td{border:1px solid #d0d7de;padding:8px;font-size:13px;}th{background:#f6f8fa;text-align:left;}mark{background:#e6f0ff;color:#0b61f7;padding:0 4px;border-radius:4px;}</style>';
-        let html = `<!doctype html><html><head><meta charset="utf-8">${style}<title>SEO Report - ${host}</title></head><body>`;
-        html += `<h1>SEO Report - ${host}</h1><div>Generated: ${data.generatedAt}</div>`;
-        html += `<div style="margin:8px 0;">Overall Score: <mark>${data.overallScore}</mark></div>`;
-        Object.entries(data.categories).forEach(([cat, obj]) => {
-          html += `<h2>${cat} <small style="color:#9ca3af;">(Score ${obj.score})</small></h2>`;
-          html += '<table><thead><tr><th>Type</th><th>Message</th></tr></thead><tbody>';
-          [['errors','Errors'],['warnings','Warnings'],['good','Good']].forEach(([key,label]) => {
-            (obj.details[key] || []).forEach(item => {
-              html += `<tr><td>${label}</td><td>${(item.message || '').replace(/</g,'&lt;')}</td></tr>`;
-            });
-          });
-          html += '</tbody></table>';
+        // Advanced, user-friendly HTML export
+        const escape = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const style = `
+          <style>
+            :root{ --bg:#ffffff; --text:#24292f; --muted:#57606a; --border:#d0d7de; --accent:#0b61f7; --good:#1f883d; --warn:#9a6700; --err:#cf222e; --chip:#eef2ff; }
+            @media print { @page{ margin:12mm; } }
+            body{font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);padding:16px;}
+            h1{color:var(--accent);margin:0 0 6px 0;}
+            h2{margin:18px 0 6px 0;}
+            .muted{color:var(--muted);} .row{display:flex;gap:12px;flex-wrap:wrap;}
+            .card{border:1px solid var(--border);border-radius:10px;padding:12px;background:#fff;}
+            .badge{display:inline-block;border:1px solid var(--border);border-radius:9999px;padding:2px 8px;font-size:12px;margin-right:6px;background:#f6f8fa;color:var(--muted);}
+            .divider{height:1px;background:var(--border);margin:10px 0;}
+            .score-wrap{display:flex;align-items:center;gap:12px;}
+            .score-circle{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(var(--accent) 0deg, var(--border) 0deg);} 
+            .score-inner{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;font-weight:700;}
+            .counts{display:flex;gap:8px;align-items:center;}
+            .pill{border-radius:9999px;padding:2px 8px;font-size:12px;border:1px solid var(--border);} 
+            .pill.err{color:#fff;background:var(--err);border-color:var(--err);} .pill.warn{color:#fff;background:var(--warn);border-color:var(--warn);} .pill.good{color:#fff;background:var(--good);border-color:var(--good);} 
+            .controls{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;}
+            .chip{border-radius:9999px;padding:6px 10px;border:1px solid var(--border);cursor:pointer;background:#f6f8fa;color:var(--text);}
+            .chip.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(11,97,247,0.12) inset;}
+            .btn{border-radius:8px;padding:6px 10px;border:1px solid var(--border);background:#fff;cursor:pointer}
+            table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px;}
+            th,td{border:1px solid var(--border);padding:8px;vertical-align:top;}
+            th{background:#f6f8fa;text-align:left;cursor:pointer;}
+            .type-err{color:var(--err);font-weight:600;} .type-warn{color:var(--warn);font-weight:600;} .type-good{color:var(--good);font-weight:600;}
+            .hidden{display:none !important;}
+            .section{margin:12px 0;}
+            .section-header{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;}
+            .section-body{margin-top:8px;}
+            .legend{display:flex;flex-wrap:wrap;gap:8px;}
+            .legend .badge{background:#fff}
+            .top-issues li{margin-bottom:6px}
+            .nowrap{white-space:nowrap}
+            @media (max-width: 560px){ .score-wrap{flex-direction:row;justify-content:space-between} table{font-size:12px} th,td{padding:6px} }
+          </style>`;
+
+        function scoreColor(score){ if(score>=90) return '#1f883d'; if(score>=70) return '#9a6700'; if(score>=50) return '#d97706'; return '#cf222e'; }
+        function circle(score){ const col=scoreColor(score); const deg = Math.max(0, Math.min(360, score*3.6));
+          return `<div class="score-circle" style="background:conic-gradient(${col} ${deg}deg, #e5e7eb 0deg)"><div class="score-inner" style="color:${col}">${score}</div></div>`; }
+
+        // Build Top Issues (by error count per category)
+        const entries = Object.entries(data.categories || {});
+        const byErr = entries.map(([cat,obj]) => ({cat, err: (obj.details.errors||[]).length, first: (obj.details.errors||[])[0]}));
+        byErr.sort((a,b)=>b.err-a.err);
+        const top = byErr.slice(0,3).filter(x=>x.err>0);
+
+        let html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${style}<title>SEO Report - ${host}</title></head><body>`;
+        html += `<h1>SEO Report — ${escape(host)}</h1>`;
+        html += `<div class="muted">Generated: ${escape(data.generatedAt)}</div>`;
+        html += `<div class="row" style="margin-top:8px;">`
+        html += `<div class="card" style="flex:1;min-width:220px;">`
+             + `<div class="score-wrap">${circle(data.overallScore)}<div><div class="muted">Overall Score</div><div style="font-size:20px;font-weight:700;color:${scoreColor(data.overallScore)}">${data.overallScore}</div></div></div>`
+             + `<div class="divider"></div>`
+             + `<div class="legend">
+                  <span class="badge">Score legend:</span>
+                  <span class="badge" style="color:#fff;background:#1f883d;border-color:#1f883d">90–100 Excellent</span>
+                  <span class="badge" style="color:#fff;background:#9a6700;border-color:#9a6700">70–89 Good</span>
+                  <span class="badge" style="color:#fff;background:#d97706;border-color:#d97706">50–69 Fair</span>
+                  <span class="badge" style="color:#fff;background:#cf222e;border-color:#cf222e">0–49 Poor</span>
+                </div>`
+             + `</div>`;
+        html += `<div class="card" style="flex:2;min-width:260px;">`
+             + `<div style="font-weight:700;margin-bottom:6px;">Top Issues</div>`
+             + (top.length? `<ol class="top-issues">${top.map(t=>`<li><a href="#${escape(t.cat).replace(/\W+/g,'-').toLowerCase()}"><strong>${escape(t.cat)}</strong></a>: ${escape(t.first?.message || '(multiple issues)')} ${t.err>1?`<span class="muted">(+${t.err-1} more)</span>`:''}</li>`).join('')}</ol>` : `<div class="muted">No critical errors detected.</div>`)
+             + `</div>`;
+        html += `</div>`; // row
+
+        // Global controls
+        html += `<div class="controls">
+          <span class="chip active" data-filter="all">All</span>
+          <span class="chip" data-filter="errors">Errors</span>
+          <span class="chip" data-filter="warnings">Warnings</span>
+          <span class="chip" data-filter="good">Good</span>
+          <button class="btn" id="expand-all">Expand all</button>
+          <button class="btn" id="collapse-all">Collapse all</button>
+        </div>`;
+
+        // Sections per category
+        entries.forEach(([cat,obj]) => {
+          const cid = escape(cat).replace(/\W+/g,'-').toLowerCase();
+          const counts = obj.counts || {errors:0,warnings:0,good:0};
+          html += `<div class="section card" id="${cid}" data-expanded="true">
+            <div class="section-header">
+              <div class="score-wrap">
+                ${circle(obj.score)}
+                <div>
+                  <div style="font-weight:700">${escape(cat)}</div>
+                  <div class="counts">
+                    <span class="pill err">E ${counts.errors||0}</span>
+                    <span class="pill warn">W ${counts.warnings||0}</span>
+                    <span class="pill good">G ${counts.good||0}</span>
+                  </div>
+                </div>
+              </div>
+              <div><button class="btn toggle">Hide</button></div>
+            </div>
+            <div class="section-body">
+              <table data-category="${cid}">
+                <thead><tr><th data-sort="type">Type</th><th data-sort="message">Message</th></tr></thead>
+                <tbody>
+                  ${[['errors','Error','type-err'],['warnings','Warning','type-warn'],['good','Good','type-good']].map(([key,label,cls]) =>
+                    (obj.details[key]||[]).map(it => `<tr data-type="${key}"><td class="${cls}">${label}</td><td>${escape(it.message || String(it))}</td></tr>`).join('')
+                  ).join('')}
+                </tbody>
+              </table>
+              <div class="muted" style="margin-top:6px;font-size:12px;">Tip: Click table headers to sort. Use filter chips above to focus on specific severities.</div>
+            </div>
+          </div>`;
         });
-        html += '</body></html>';
+
+        // Guidance block
+        html += `<div class="card" style="margin-top:12px;">
+          <div style="font-weight:700;margin-bottom:6px;">Benchmarks & Guidance</div>
+          <div class="legend">
+            <span class="badge">LCP &lt; 2.5s (good), 2.5–4.0s (needs improvement), &gt; 4.0s (poor)</span>
+            <span class="badge">CLS &lt; 0.1 (good), 0.1–0.25 (needs improvement), &gt; 0.25 (poor)</span>
+            <span class="badge">INP &lt; 200ms (good), 200–500ms (needs improvement), &gt; 500ms (poor)</span>
+          </div>
+        </div>`;
+
+        // Inline JS for filters, sorting, and accordions
+        const script = `
+          <script>
+          (function(){
+            function setFilter(f){
+              document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active', c.dataset.filter===f || (f==='all'&&c.dataset.filter==='all')));
+              document.querySelectorAll('tbody tr').forEach(row=>{
+                if(f==='all') row.classList.remove('hidden'); else row.classList.toggle('hidden', row.getAttribute('data-type')!==f);
+              });
+            }
+            document.addEventListener('click', (e)=>{
+              const c=e.target.closest('.chip'); if(c){ setFilter(c.dataset.filter); }
+              const t=e.target.closest('.toggle'); if(t){ const sec=t.closest('.section'); const body=sec.querySelector('.section-body'); const exp = sec.getAttribute('data-expanded')==='true'; sec.setAttribute('data-expanded', (!exp).toString()); body.style.display = exp? 'none':'block'; t.textContent = exp? 'Show':'Hide'; }
+              const th=e.target.closest('th'); if(th && th.dataset.sort){ const table=th.closest('table'); sortTable(table, th.dataset.sort, th._dir = (th._dir==='asc'?'desc':'asc')); }
+              const xa=e.target.closest('#expand-all'); if(xa){ document.querySelectorAll('.section').forEach(s=>{ s.setAttribute('data-expanded','true'); s.querySelector('.section-body').style.display='block'; const btn=s.querySelector('.toggle'); if(btn) btn.textContent='Hide'; }); }
+              const xc=e.target.closest('#collapse-all'); if(xc){ document.querySelectorAll('.section').forEach(s=>{ s.setAttribute('data-expanded','false'); s.querySelector('.section-body').style.display='none'; const btn=s.querySelector('.toggle'); if(btn) btn.textContent='Show'; }); }
+            });
+            function sortTable(table, key, dir){
+              const tbody=table.querySelector('tbody'); const rows=[...tbody.querySelectorAll('tr')];
+              const typeOrder = {errors:0,warnings:1,good:2};
+              rows.sort((a,b)=>{
+                if(key==='type'){ const av=typeOrder[a.dataset.type]??9; const bv=typeOrder[b.dataset.type]??9; return (dir==='asc'? av-bv : bv-av); }
+                const am=a.cells[1].innerText.toLowerCase(); const bm=b.cells[1].innerText.toLowerCase(); return (dir==='asc'? am.localeCompare(bm) : bm.localeCompare(am));
+              });
+              rows.forEach(r=>tbody.appendChild(r));
+            }
+            // init
+            setFilter('all');
+          })();
+          </script>`;
+
+        html += script + '</body></html>';
         blob = new Blob([html], { type: 'text/html' });
         filename = `seo-report-${host}.html`;
       }
