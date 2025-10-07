@@ -109,5 +109,21 @@ seo-checker/
 		└── README.md          # Packaging instructions
 ```
 
+## Docs / Wiki
+- Start here: [`docs/README.md`](docs/README.md)
+- Highlights:
+	- Overview: [`docs/overview.md`](docs/overview.md)
+	- Usage: [`docs/usage.md`](docs/usage.md)
+	- Settings: [`docs/settings.md`](docs/settings.md)
+	- Exports: [`docs/exports.md`](docs/exports.md)
+	- Backlinks: [`docs/backlinks.md`](docs/backlinks.md)
+	- PSI: [`docs/psi.md`](docs/psi.md)
+	- Theming: [`docs/theming.md`](docs/theming.md)
+	- Architecture: [`docs/architecture.md`](docs/architecture.md)
+	- Development: [`docs/development.md`](docs/development.md)
+	- Publishing: [`docs/publishing.md`](docs/publishing.md)
+	- Troubleshooting: [`docs/troubleshooting.md`](docs/troubleshooting.md)
+	- Roadmap: [`docs/roadmap.md`](docs/roadmap.md)
+
 ## License
 MIT License © 2025 Tecso — see `LICENSE`.
