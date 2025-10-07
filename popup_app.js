@@ -449,8 +449,11 @@ document.addEventListener('DOMContentLoaded', () => {
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gh-bg-primary); color: var(--gh-text-primary); min-height: 420px; padding: 16px; margin: 0;">
         <div class="toolbar" style="margin-bottom:12px;">
           <div class="brand">
-            <div id="logo-icon" style="font-size: 18px;"></div>
-            <span style="font-weight: 800; letter-spacing:.2px;">Tecso SEO Analyzer</span>
+            <div class="logo-mark" style="width:26px;height:26px;border-radius:50%;background: var(--gh-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;">T</div>
+            <div style="display:flex; flex-direction:column; line-height:1.1;">
+              <span style="font-weight: 800; letter-spacing:.2px;">Tecso SEO Analyzer</span>
+              <span style="font-size:12px; color: var(--gh-text-secondary);">Advanced SEO metrics by <a href="https://tecso.team" target="_blank" rel="noreferrer" style="color: var(--gh-accent); text-decoration:none;">Tecso</a></span>
+            </div>
           </div>
            <div class="actions">
             <button id="analyze-button" class="btn btn-primary">Analyze</button>
@@ -546,43 +549,25 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
             <div id="placeholder-icon" style="font-size: 40px;"></div>
             <div style="font-size: 14px;">Click Analyze to scan the current page, then export a shareable report.</div>
-            <div id="pre-chips" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
-              <span class="chip" data-filter="all" data-active="true">All</span>
-              <span class="chip" data-filter="errors">Errors</span>
-              <span class="chip" data-filter="warnings">Warnings</span>
-              <span class="chip" data-filter="good">Good</span>
-            </div>
           </div>
         </div>
-        <div class="footer">© <span id="footer-year"></span> Tecso • <a href="https://tecso.team" target="_blank" rel="noreferrer">tecso.team</a></div>
+        <div class="footer">© <span id="footer-year"></span> Tecso • <a href="https://tecso.team" target="_blank" rel="noreferrer">tecso.team</a> • v<span id="footer-version"></span></div>
       </div>
     `;
     const analyzeBtn = document.getElementById('analyze-button');
     if (analyzeBtn) analyzeBtn.addEventListener('click', analyzeCurrentPage);
-    const logoIconEl = document.getElementById('logo-icon');
-    if (logoIconEl) logoIconEl.textContent = '📊';
+    // header uses a styled logo mark; no dynamic icon needed
     const placeholderIconEl = document.getElementById('placeholder-icon');
     if (placeholderIconEl) placeholderIconEl.textContent = '🔍';
   const footerYearEl = document.getElementById('footer-year');
   if (footerYearEl) footerYearEl.textContent = String(new Date().getFullYear());
+  try {
+    const manifest = chrome.runtime && chrome.runtime.getManifest ? chrome.runtime.getManifest() : null;
+    const verEl = document.getElementById('footer-version');
+    if (manifest && verEl) verEl.textContent = manifest.version || '';
+  } catch(_) {}
 
-    // pre-result chips behavior
-    const preChips = document.getElementById('pre-chips');
-    if (preChips) {
-      preChips.addEventListener('click', (e) => {
-        const t = e.target;
-        if (t && t.classList && t.classList.contains('chip')) {
-          const key = t.getAttribute('data-filter');
-          if (key) currentFilter = key;
-          Array.from(preChips.children).forEach(ch => {
-            if (ch && ch.classList && ch.classList.contains('chip')) {
-              const ck = ch.getAttribute('data-filter');
-              ch.setAttribute('data-active', String(ck === key));
-            }
-          });
-        }
-      });
-    }
+    // note: pre-analysis chips removed for a cleaner initial view
 
     // Settings wiring
   const settingsBtn = document.getElementById('settings-button');
@@ -705,6 +690,19 @@ document.addEventListener('DOMContentLoaded', () => {
             .card{border:1px solid var(--border);border-radius:10px;padding:12px;background:#fff;}
             .badge{display:inline-block;border:1px solid var(--border);border-radius:9999px;padding:2px 8px;font-size:12px;margin-right:6px;background:#f6f8fa;color:var(--muted);}
             .divider{height:1px;background:var(--border);margin:10px 0;}
+            .report-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border:1px solid var(--border);border-radius:10px;background:linear-gradient(135deg, rgba(11,97,247,0.08), rgba(124,58,237,0.06));margin-bottom:12px;}
+            .brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--accent)}
+            .brand .logo{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+            .meta{text-align:right;color:var(--muted);font-size:12px}
+            .report-footer{margin-top:12px;padding:10px 16px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;display:flex;align-items:center;justify-content:space-between}
+            .report-footer a{color:var(--accent);text-decoration:none}
+            .report-footer a:hover{text-decoration:underline}
+            .report-footer .pagenum:after{content: counter(page)}
+            @media print{
+              .report-header{position:fixed;top:0;left:0;right:0;background:#fff}
+              .report-footer{position:fixed;bottom:0;left:0;right:0;background:#fff}
+              body{margin-top:100px;margin-bottom:70px}
+            }
             .score-wrap{display:flex;align-items:center;gap:12px;}
             .score-circle{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(var(--accent) 0deg, var(--border) 0deg);} 
             .score-inner{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;font-weight:700;}
@@ -738,11 +736,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const entries = Object.entries(data.categories || {});
         const byErr = entries.map(([cat,obj]) => ({cat, err: (obj.details.errors||[]).length, first: (obj.details.errors||[])[0]}));
         byErr.sort((a,b)=>b.err-a.err);
-        const top = byErr.slice(0,3).filter(x=>x.err>0);
+    const top = byErr.slice(0,3).filter(x=>x.err>0);
+    const year = new Date(data.generatedAt || Date.now()).getFullYear();
 
-        let html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${style}<title>SEO Report - ${host}</title></head><body>`;
-        html += `<h1>SEO Report — ${escape(host)}</h1>`;
-        html += `<div class="muted">Generated: ${escape(data.generatedAt)}</div>`;
+    let html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${style}<title>SEO Report - ${host}</title></head><body>`;
+    html += `<div class="report-header">`
+      + `<div class="brand"><div class="logo">T</div><div>Tecso SEO Analyzer</div></div>`
+      + `<div class="meta"><div><strong>Report for:</strong> ${escape(host)}</div><div><strong>Generated:</strong> ${escape(data.generatedAt)}</div></div>`
+      + `</div>`;
         html += `<div class="row" style="margin-top:8px;">`
         html += `<div class="card" style="flex:1;min-width:220px;">`
              + `<div class="score-wrap">${circle(data.overallScore)}<div><div class="muted">Overall Score</div><div style="font-size:20px;font-weight:700;color:${scoreColor(data.overallScore)}">${data.overallScore}</div></div></div>`
@@ -814,7 +815,13 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>`;
 
-        // Inline JS for filters, sorting, and accordions
+    // Footer
+    html += `<div class="report-footer">`
+      + `<div>© ${year} Tecso • <a href="https://tecso.team" target="_blank" rel="noreferrer">tecso.team</a></div>`
+      + `<div>Page <span class="pagenum"></span></div>`
+      + `</div>`;
+
+    // Inline JS for filters, sorting, and accordions
         const script = `
           <script>
           (function(){
