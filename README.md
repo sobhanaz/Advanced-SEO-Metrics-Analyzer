@@ -46,6 +46,18 @@ Actionable SEO insights for any page: on‑page, technical, content, UX, local, 
 - CSV: rows by Category/Type/Message for spreadsheets
 - HTML: clean, print‑friendly report for sharing
 
+## Screenshots
+
+> Note: Images are stored in `image/` within this repo.
+
+| Overview | Filters | Category Details |
+|---|---|---|
+| ![Overview](image/image.png) | ![Filters](image/Screenshot%202025-10-07%20221354.png) | ![Details](image/Screenshot%202025-10-07%20221441.png) |
+
+| Score Circle | Export Report |
+|---|---|
+| ![Score](image/Screenshot%202025-10-07%20221430.png) | ![Export](image/Screenshot%202025-10-07%20221414.png) |
+
 ## Packaging a ZIP for the Chrome Web Store
 A PowerShell script builds a clean ZIP in `Package/`.
 
@@ -63,6 +75,11 @@ Outputs:
 To test the packaged folder locally:
 1. `chrome://extensions` → Developer mode → Load unpacked
 2. Select `Package/dist/`
+
+## Author & Links
+- Author: [Sobhan Azimzadeh](https://github.com/sobhanaz)
+- Agency: [Tecso Digital Agency](https://tecso.team)
+- Resume: https://cv.tecso.team/
 
 ## Permissions
 - `activeTab`, `scripting`, `storage`, `webNavigation`, `contextMenus`
